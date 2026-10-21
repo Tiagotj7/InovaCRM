@@ -1,0 +1,45 @@
+name: 🚀 Deploy via FTP
+
+on:
+  push:
+    branches:
+      - main   # ou "master", se for o seu branch padrão
+
+jobs:
+  ftp-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout do código
+        uses: actions/checkout@v3
+
+      - name: 🚀 Deploy para FTP (VigilantOficial)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+
+          protocol: ftp
+          port: 21
+
+          # Pasta local dentro do repositório que será enviada
+          local-dir: ./
+
+          # Pasta remota NO SERVIDOR (InfinityFree)
+          server-dir: /htdocs/
+
+          exclude: |
+            **/.git*
+            **/.github/**
+            **/node_modules/**
+            **/vendor/**
+            **/.env
+            **/README.md
+            **/LICENSE
+            **/database/**
+            **/.vscode/**
+            **/.idea/**
+            **/*.sql
+
+          log-level: minimal
