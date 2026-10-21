@@ -1,16 +1,16 @@
 <?php
 declare(strict_types=1);
 return [
-    'app_name' => 'Inova CRM',
-    'base_url' => '',
-    'timezone' => 'America/Sao_Paulo',
-    'session_name' => 'inova_crm_session',
+    'app_name' => getenv('APP_NAME') ?: 'Inova CRM',
+    'base_url' => getenv('APP_URL') ?: '',
+    'timezone' => getenv('APP_TIMEZONE') ?: 'America/Sao_Paulo',
+    'session_name' => getenv('SESSION_NAME') ?: 'inova_crm_session',
     'db' => [
-        'host' => 'localhost',
-        'port' => '3306',
-        'name' => 'inova_crm',
-        'user' => 'SEU_USUARIO',
-        'pass' => 'SUA_SENHA',
-        'charset' => 'utf8mb4',
+        'host' => getenv('DB_HOST') ?: 'localhost',
+        'port' => getenv('DB_PORT') ?: '3306',
+        'name' => getenv('DB_DATABASE') ?: 'inova_crm',
+        'user' => getenv('DB_USERNAME') ?: 'inova_crm_user',
+        'pass' => getenv('DB_PASSWORD') ?: '',
+        'charset' => getenv('DB_CHARSET') ?: 'utf8mb4',
     ],
 ];

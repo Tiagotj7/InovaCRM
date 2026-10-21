@@ -14,7 +14,7 @@ O pacote não presume que a InfinityFree ofereça todos esses recursos. Confirme
 
 1. Crie um banco MySQL.
 2. Execute `database/schema.sql`.
-3. Copie `config/config.example.php` para `config/config.php` e preencha o banco.
+3. Copie `.env.example` para `.env` e preencha os dados do banco. O sistema carrega o `.env` sem depender do Composer.
 4. Aponte o document root do servidor para `public/`.
 5. Crie o primeiro administrador **em ambiente local ou terminal seguro**:
 
@@ -24,13 +24,15 @@ php database/seed.php "Seu Nome" voce@example.com "UmaSenhaLonga-e-Unica"
 
 6. Acesse `public/index.php?page=login`.
 
+O arquivo `.env` deve ficar na raiz do projeto, fora de `public/`. Nunca publique a senha real no repositório ou envie o `.env` para terceiros.
+
 Se a hospedagem não tiver SSH, execute o seed localmente contra o banco remoto apenas se isso for permitido, ou crie o usuário com um procedimento administrativo seguro. Não coloque a senha no código.
 
 ## Estrutura
 
 - `public/`: ponto público, CSS e logo.
 - `app/`: helpers, autenticação e acesso PDO.
-- `config/`: exemplo de configuração; mantenha `config.php` fora do web root quando possível.
+- `config/`: configuração PHP; as credenciais ficam no `.env`, fora do web root.
 - `database/`: schema e criação do administrador.
 - `tests/`: roteiro manual de testes.
 
