@@ -22,7 +22,7 @@ function avatar_html(array $u, string $class = ''): string {
     $file = (string)($u['avatar'] ?? '');
     $class = trim('avatar ' . $class);
     if ($file !== '' && preg_match('/^[A-Za-z0-9_.-]+$/', $file)) {
-        return '<img class="' . e($class) . '" src="' . AVATAR_DIR_NAME . '/' . e($file) . '" alt="" loading="lazy">';
+        return '<img class="' . e($class) . '" src="index.php?page=avatar&amp;u=' . (int)($u['id'] ?? 0) . '&amp;v=' . e($file) . '" alt="" loading="lazy">';
     }
     return '<span class="' . e($class) . ' avatar-initials" aria-hidden="true">' . e(user_initials((string)($u['name'] ?? ''))) . '</span>';
 }
@@ -79,8 +79,24 @@ function process_avatar_upload(array $file, int $userId): array {
     $name = 'u' . $userId . '_' . bin2hex(random_bytes(8)) . '.jpg';
     $ok = @imagejpeg($dst, $dir . '/' . $name, 86);
     imagedestroy($dst);
-    if (!$ok) { app_log('avatar: imagejpeg falhou em ' . $dir); return [null, 'Não foi possível salvar a imagem no servidor.']; }
+    if (!$ok || !is_file($dir . '/' . $name)) { app_log('avatar: imagejpeg falhou em ' . $dir); return [null, 'Não foi possível salvar a imagem no servidor.']; }
+    app_log('avatar: salvo ' . $name . ' (' . filesize($dir . '/' . $name) . ' bytes) usuário ' . $userId);
     return [$name, null];
+}
+
+/** Entrega a foto de um usuário pelo PHP (só logado; mesma empresa ou administrador geral). */
+function avatar_serve(): never {
+    $uid = (int)($_GET['u'] ?? 0);
+    $q = db()->prepare('SELECT avatar, company_id FROM users WHERE id=? AND deleted=0'); $q->execute([$uid]); $row = $q->fetch();
+    $file = (string)($row['avatar'] ?? '');
+    $path = ($file !== '' && preg_match('/^[A-Za-z0-9_.-]+$/', $file)) ? avatar_dir() . '/' . $file : '';
+    if (!$row || $path === '' || !is_file($path) || (!is_global_admin() && (int)$row['company_id'] !== tenant_id())) { http_response_code(404); exit; }
+    header('Content-Type: image/jpeg');
+    header('Content-Length: ' . filesize($path));
+    header('Cache-Control: private, max-age=604800');
+    header('X-Content-Type-Options: nosniff');
+    readfile($path);
+    exit;
 }
 
 function delete_avatar_file(?string $name): void {
@@ -249,8 +265,13 @@ function profile_page(): void {
         if(!b){ form.submit(); return; }
         var fd=new FormData(form); fd.set('avatar',b,'avatar.jpg'); fd.delete('MAX_FILE_SIZE');
         fetch(form.getAttribute('action')||location.href,{method:'POST',body:fd,credentials:'same-origin',redirect:'manual'})
-          .then(function(){ location.href='index.php?page=profile'; })
-          .catch(function(){ location.href='index.php?page=profile'; });
+          .then(function(r){
+            // Sucesso = o servidor respondeu com redirecionamento (resposta "opaqueredirect").
+            if(r.type==='opaqueredirect'||(r.status>=300&&r.status<400)){ location.href='index.php?page=profile&_='+Date.now(); return; }
+            document.body.classList.remove('avatar-busy'); input.value='';
+            fail('O servidor não aceitou a foto (código '+r.status+'). Tente novamente ou use uma imagem menor.');
+          })
+          .catch(function(){ document.body.classList.remove('avatar-busy'); input.value=''; fail('Falha de conexão ao enviar a foto. Tente novamente.'); });
       },'image/jpeg',0.88);
     }).catch(function(){ form.submit(); });
   });
