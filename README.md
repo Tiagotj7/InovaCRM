@@ -13,7 +13,7 @@ O pacote não presume que a InfinityFree ofereça todos esses recursos. Confirme
 ## Instalação local
 
 1. Crie um banco MySQL.
-2. Execute `database/schema.sql`.
+2. Importe `database/schema.sql` **dentro** desse banco (o arquivo não cria nem seleciona banco, então funciona no phpMyAdmin da hospedagem e pode ser reimportado sem risco).
 3. Copie `.env.example` para `.env` e preencha os dados do banco. O sistema carrega o `.env` sem depender do Composer.
 4. Aponte o document root do servidor para `public/`.
 5. Crie o primeiro administrador **em ambiente local ou terminal seguro**:
@@ -21,6 +21,14 @@ O pacote não presume que a InfinityFree ofereça todos esses recursos. Confirme
 ```bash
 php database/seed.php "Seu Nome" voce@example.com "UmaSenhaLonga-e-Unica"
 ```
+
+No XAMPP no Linux, execute o seed com o PHP do próprio XAMPP para usar o driver MySQL incluído nele:
+
+```bash
+/opt/lampp/bin/php database/seed.php "Seu Nome" voce@example.com "UmaSenhaLonga-e-Unica"
+```
+
+Se preferir usar o `php` do sistema, instale/habilite a extensão PDO MySQL correspondente à versão ativa do PHP (por exemplo, `php8.3-mysql`) e confirme com `php -m | grep pdo_mysql`.
 
 6. Acesse `public/index.php?page=login`.
 
@@ -49,3 +57,16 @@ Faça exportação manual com `mysqldump` em ambiente local/administrativo, arma
 ## Limitações do MVP
 
 A alteração de plano é manual pelo administrador. Não há gateway de pagamento, e-mail automático, cron, upload, múltiplos pipelines, recuperação automática de senha nem exclusão de dados. O downgrade preserva dados, mas o bloqueio de novas inserções deve ser respeitado pela aplicação.
+
+## Publicação na InfinityFree (sem SSH)
+
+1. Importe `database/schema.sql` no phpMyAdmin do banco da hospedagem.
+2. Gere o hash da senha no seu computador (`php -r "echo password_hash('SUA_SENHA', PASSWORD_DEFAULT);"`), edite `database/create_admin.sql` e execute na aba SQL.
+3. O deploy do GitHub **não envia o `.env`** (está no `exclude` do workflow e no `.gitignore`). Envie o `.env` uma vez por FTP/Gerenciador de Arquivos para `/htdocs/.env`, com os dados do banco da hospedagem (`DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
+4. Acesse `https://seu-dominio/public/index.php?page=login`.
+
+Os arquivos `.htaccess` incluídos bloqueiam o acesso web a `.env`, `app/`, `config/`, `database/`, `storage/` e `tests/`. Confirme abrindo `https://seu-dominio/.env`: deve dar 403.
+
+## Se aparecer erro ao entrar
+
+Os erros são gravados em `storage/logs/app.log`. Para ver o motivo na tela, coloque `APP_DEBUG=1` no `.env` do servidor, tente de novo e **volte para `0`** depois. Causas comuns: `.env` ausente no servidor, usuário/senha do banco errados, `DB_HOST` incorreto (na InfinityFree é algo como `sqlXXX.infinityfree.com`, não `localhost`) ou tabelas não importadas.
