@@ -85,3 +85,6 @@ td form{display:inline-block}
 .profile-hint{margin:12px 16px 0}.profile-meta>div{padding:14px 16px}
 .profile-dd{position:fixed;left:14px;right:14px;top:72px;width:auto;max-width:none}
 }
+
+/* Marca compacta e nítida para a tela de login */
+.login-brand{display:flex;align-items:center;justify-content:center;gap:12px;margin:2px auto 15px}.login-brand img{display:block;width:58px;height:58px;object-fit:contain;border-radius:15px;box-shadow:0 0 28px #4f46e566}.login-brand span{font:800 30px/1 Manrope,Inter,sans-serif;letter-spacing:-1.4px;color:#f8fafc}.login-brand b{color:#818cf8;font-weight:600;letter-spacing:3px;margin-left:3px}.login-card .tagline{margin:0 0 25px}.login-card h1{margin-top:0}
