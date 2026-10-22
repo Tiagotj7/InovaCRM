@@ -13,9 +13,17 @@ function require_login(): void {
     // Revalida no banco: suspensão, troca de perfil/nome/e-mail e plano valem imediatamente.
     $q=db()->prepare('SELECT u.name,u.email,u.role,u.status,u.deleted,c.status company_status,s.plan_code FROM users u JOIN companies c ON c.id=u.company_id LEFT JOIN company_subscriptions s ON s.company_id=c.id AND s.status="active" WHERE u.id=? LIMIT 1');
     $q->execute([$_SESSION['user']['id']]); $fresh=$q->fetch();
-    if(!$fresh || $fresh['status']!=='active' || (int)$fresh['deleted']===1){ Auth::logout(); redirect('index.php?page=login'); }
+    if(!$fresh || (int)$fresh['deleted']===1){ Auth::logout(); redirect('index.php?page=login'); }
+    if($fresh['status']!=='active'){ $n=(string)($_SESSION['user']['name']??''); Auth::logout(); suspended_page('user',$n); }
     $_SESSION['user']=array_merge($_SESSION['user'],$fresh);
-    if(($fresh['company_status']??'active')==='suspended') exit('Conta suspensa.');
+    if(($fresh['company_status']??'active')==='suspended') suspended_page('company',(string)($_SESSION['user']['name']??''));
+}
+function suspended_page(string $kind,string $name=''): never {
+    http_response_code(403);
+    $company=$kind==='company';
+    $title=$company?'Conta suspensa':'Acesso suspenso';
+    $text=$company?'O acesso da sua empresa ao Inova CRM está temporariamente suspenso. Seus dados continuam guardados e seguros.':'O seu acesso ao Inova CRM está temporariamente suspenso. Seus dados continuam guardados e seguros.';
+    ?><!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title><?=e($title)?> · Inova CRM</title><link rel="stylesheet" href="assets/app.css"></head><body class="login-page"><main class="suspended-card"><div class="suspended-icon"><svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10.5" width="16" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.2" fill="currentColor"/></svg></div><span class="eyebrow">ACESSO PAUSADO</span><h1><?=e($title)?></h1><?php if($name!==''): ?><p class="suspended-hi">Olá, <strong><?=e($name)?></strong>.</p><?php endif; ?><p><?=e($text)?></p><div class="suspended-steps"><div><b>1</b><span>Fale com o responsável pela conta ou com o suporte do Inova CRM.</span></div><div><b>2</b><span>Regularize a pendência informada, se houver.</span></div><div><b>3</b><span>Assim que for reativada, é só entrar novamente.</span></div></div><a class="btn primary" href="index.php?page=<?=$company?'logout':'login'?>"><?=$company?'Sair da conta':'Voltar ao login'?></a><p class="hint">Conecte. Organize. <strong>Cresça.</strong></p></main></body></html><?php exit;
 }
 function require_admin(): void { require_login(); if((current_user()['role']??'')!=='global_admin'){ http_response_code(403); exit('Acesso negado.'); } }
 function is_global_admin(): bool { return (current_user()['role']??'')==='global_admin'; }
