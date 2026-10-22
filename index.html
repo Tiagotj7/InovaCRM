@@ -1,15 +1,258 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="0; url=public/index.php?page=login">
-  <title>Inova CRM</title>
-  <script>
-    window.location.replace('public/index.php?page=login');
-  </script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inova CRM · O CRM que impulsiona o seu negócio</title>
+<meta name="description" content="Gestão de clientes, vendas e oportunidades em um só lugar. Comece no plano Free.">
+<link rel="icon" href="public/assets/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050816;--card:#0a1030;--card2:#0d1540;--bd:#1c2660;--tx:#e8ecff;--mu:#9aa6d6;--ac:#6c6cff;--in:#5b4df5;--cy:#38bdf8;--g:linear-gradient(135deg,#7a63ff,#4f46e5)}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{background:var(--bg);color:var(--tx);font:16px/1.6 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3{font-family:Manrope,Inter,sans-serif;letter-spacing:-.02em;line-height:1.12}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--cy);outline-offset:3px;border-radius:8px}
+.wrap{width:min(1180px,100% - 44px);margin:0 auto;position:relative;z-index:1}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{display:inline-flex;align-items:center;gap:10px;font:600 15px Inter;padding:14px 26px;border-radius:12px;border:1px solid transparent;transition:transform .15s,box-shadow .15s,background .15s;cursor:pointer}
+.btn:hover{transform:translateY(-1px)}
+.btn.p{background:var(--g);color:#fff;box-shadow:0 10px 30px #5b4df566}
+.btn.o{border-color:#3a4590;color:var(--tx);background:#ffffff08}
+.btn.o:hover{background:#ffffff14}
+.btn.s{padding:10px 20px;font-size:14px;border-radius:10px}
+/* nav */
+nav{position:sticky;top:0;z-index:30;background:#050816d9;backdrop-filter:blur(14px)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:20px}
+.logo{display:flex;align-items:center;gap:10px;font:700 25px Manrope;letter-spacing:-.02em}
+.logo img{width:38px;height:38px;border-radius:10px}
+.logo span{color:var(--ac);font-weight:600}
+.menu{display:flex;gap:34px;font-size:14px;color:#c4cdf5}
+.menu a:hover{color:#fff}
+.act{display:flex;gap:12px}
+@media(max-width:900px){.menu{display:none}}
+@media(max-width:480px){.act .o{display:none}}
+/* hero */
+.hero{padding:56px 0 90px;position:relative;overflow:hidden}
+.glow{position:absolute;border-radius:50%;pointer-events:none;filter:blur(10px)}
+.hero .g1{width:820px;height:820px;right:-260px;top:-180px;background:radial-gradient(circle,#4f46e540,transparent 62%)}
+.hero .g2{width:520px;height:520px;left:-200px;bottom:-200px;background:radial-gradient(circle,#2563eb2e,transparent 65%)}
+.hgrid{display:grid;grid-template-columns:1fr 1.18fr;gap:30px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--bd);border-radius:99px;padding:6px 16px;font-size:13px;color:#cfd6ff;background:#0a1030aa;margin-bottom:26px}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--ac);box-shadow:0 0 10px var(--ac)}
+h1{font-size:clamp(38px,5.2vw,62px);font-weight:800}
+h1 em,h2 em{font-style:normal;color:var(--ac)}
+.lead{color:#c4cdf5;max-width:470px;margin:24px 0 32px;font-size:17px}
+.cta{display:flex;gap:14px;flex-wrap:wrap}
+.trust{display:flex;gap:26px;flex-wrap:wrap;margin-top:42px;font-size:13px;color:var(--mu)}
+.trust span{display:flex;align-items:center;gap:9px}
+.trust svg{color:var(--ac)}
+/* devices */
+.dev{position:relative;padding-bottom:50px}
+.lap{background:#070c24;border:3px solid #2b3578;border-radius:22px;box-shadow:0 30px 80px #000a,0 0 70px #5b4df533;overflow:hidden;display:grid;grid-template-columns:140px 1fr;font-size:11px;animation:rise .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+.sb{background:#080d28;border-right:1px solid #151d52;padding:16px 10px;display:grid;gap:4px;align-content:start}
+.sb b{font:700 13px Manrope;padding:0 6px 12px;display:flex;gap:6px;align-items:center}
+.sb b img{width:20px;border-radius:6px}
+.sb a{color:#9aa6d6;padding:8px 9px;border-radius:7px}
+.sb a.on{background:var(--in);color:#fff}
+.mn{padding:16px 18px}
+.mn h4{font:700 14px Manrope}.mn small{color:var(--mu);font-size:10px}
+.kp{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.kp div{background:var(--card);border:1px solid #1a2358;border-radius:9px;padding:9px}
+.kp span{color:var(--mu);font-size:9.5px;display:block}
+.kp strong{font:700 16px Manrope}
+.kp em{font-style:normal;color:#34d399;font-size:9px;display:block}
+.pn{display:grid;grid-template-columns:1.5fr 1fr;gap:8px}
+.pn>div{background:var(--card);border:1px solid #1a2358;border-radius:9px;padding:10px}
+.pn h5{font:600 10px Inter;margin-bottom:6px}
+.pn svg{width:100%;height:auto;display:block}
+.st{display:grid;gap:7px;font-size:9.5px}
+.st div{display:grid;grid-template-columns:1fr auto;gap:2px 8px}
+.st i{grid-column:1/3;height:3px;border-radius:3px;background:#1a2358;overflow:hidden;position:relative}
+.st i:after{content:"";position:absolute;inset:0;width:var(--w);background:var(--g)}
+.ph{position:absolute;left:-34px;bottom:0;width:150px;background:#070c24;border:3px solid #2b3578;border-radius:26px;padding:12px 10px;box-shadow:0 20px 50px #000b;font-size:10px;animation:rise 1s .25s cubic-bezier(.2,.8,.2,1) both}
+.ph h6{font:700 14px Manrope;margin:8px 0 8px}
+.ph div{background:var(--card);border:1px solid #1a2358;border-radius:9px;padding:8px 10px;margin-bottom:6px;display:flex;justify-content:space-between}
+.ph strong{font:700 13px Manrope;display:block}
+@media(max-width:960px){.hgrid{grid-template-columns:1fr}.dev{margin-top:20px}}
+@media(max-width:640px){.lap{grid-template-columns:1fr}.sb{display:none}.ph{display:none}.kp{grid-template-columns:1fr 1fr}.pn{grid-template-columns:1fr}.dev{padding-bottom:0}}
+@media(prefers-reduced-motion:reduce){.lap,.ph{animation:none}html{scroll-behavior:auto}}
+/* sections */
+sec,section{display:block}
+.sec{padding:96px 0;position:relative}
+.band{background:linear-gradient(#050816,#070b22 40%,#050816)}
+.lbl{font-size:12px;letter-spacing:.18em;color:var(--mu);text-transform:uppercase;margin-bottom:16px}
+h2{font-size:clamp(30px,4vw,44px);font-weight:800}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.two p{color:#c4cdf5;max-width:460px}
+.feats{display:grid;grid-template-columns:repeat(5,1fr);margin-top:52px}
+.f{padding:0 24px;border-left:1px solid #151d52}
+.f:first-child{padding-left:0;border:0}
+.ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;color:var(--ac);background:#5b4df51f;border:1px solid #3a3f9a;margin-bottom:22px}
+.f h3{font-size:15.5px;margin-bottom:10px}
+.f p{font-size:13.5px;color:var(--mu)}
+@media(max-width:960px){.two{grid-template-columns:1fr}.feats{grid-template-columns:1fr 1fr;gap:34px 0}.f:nth-child(odd){border:0;padding-left:0}}
+@media(max-width:520px){.feats{grid-template-columns:1fr}.f{border:0!important;padding:0!important}}
+/* flow */
+.flow{display:grid;grid-template-columns:1.1fr 1fr;gap:56px;align-items:center}
+.fc{position:relative;height:340px}
+.box{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:24px;box-shadow:0 20px 60px #0008}
+.fc .a{position:absolute;left:0;top:0;width:56%;height:100%}
+.fc .b{position:absolute;right:0;top:0;width:52%;height:62%}
+.fc .c{position:absolute;left:36%;bottom:12px;width:50%;padding:16px;background:#0d1540;border-color:#2b3578}
+.box h3{font-size:17px;margin-bottom:6px}.box>p{font-size:12.5px;color:var(--mu)}
+.steps{margin-top:22px;display:grid;gap:16px;font-size:12.5px}
+.steps div{display:flex;align-items:center;gap:12px}
+.steps i{width:13px;height:13px;border-radius:50%;background:var(--cy);box-shadow:0 0 0 4px #38bdf822}
+.steps div:nth-child(2) i{background:#fbbf24;box-shadow:0 0 0 4px #fbbf2422}
+.steps div:nth-child(n+3) i{background:var(--ac);box-shadow:0 0 0 4px #6c6cff22}
+.steps b{margin-left:auto;font-weight:600}
+.big{font:800 24px Manrope;margin:2px 0}
+.bar{height:5px;border-radius:5px;background:#1a2358;margin:10px 0 8px;overflow:hidden}.bar i{display:block;height:100%;width:75%;background:var(--g)}
+.c small{display:flex;justify-content:space-between;color:var(--mu);font-size:11px}
+.checks{margin-top:26px;display:grid;gap:12px}
+.checks div{display:flex;gap:14px;align-items:center;font-size:14.5px;color:#d6dcff}
+.checks i{width:26px;height:26px;border-radius:50%;border:1px solid #3a4590;display:grid;place-items:center;color:var(--ac);font-style:normal;font-size:13px}
+.flow p{color:#c4cdf5;margin-top:18px;max-width:440px}
+@media(max-width:960px){.flow{grid-template-columns:1fr}.fc{height:auto;display:grid;gap:14px}.fc>*{position:static!important;width:auto!important;height:auto!important}}
+/* plans */
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
+.pl{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:30px;display:flex;flex-direction:column;position:relative}
+.pl.h{border-color:#6c6cff;background:linear-gradient(#141c5a,#0a1030);box-shadow:0 20px 60px #5b4df53a}
+.pl.h:before{content:"Mais escolhido";position:absolute;top:-12px;left:28px;background:var(--g);font-size:12px;font-weight:600;padding:3px 12px;border-radius:99px}
+.pl h3{font-size:22px}
+.pr{font:800 40px Manrope;margin:10px 0 2px}.pr small{font:500 14px Inter;color:var(--mu)}
+.pl ul{list-style:none;padding:0;margin:22px 0 28px;display:grid;gap:10px;font-size:14.5px;color:#d6dcff}
+.pl li:before{content:"✓  ";color:var(--cy);font-weight:700}
+.pl .btn{margin-top:auto;justify-content:center}
+@media(max-width:900px){.plans{grid-template-columns:1fr}}
+/* stats */
+.stats{display:grid;grid-template-columns:1.2fr repeat(4,1fr);align-items:center;border:1px solid var(--bd);border-radius:18px;background:#0a103088;padding:26px 10px}
+.stats>*{padding:0 26px;border-left:1px solid #151d52}
+.stats>:first-child{border:0;font:700 17px Manrope}
+.stats strong{font:800 24px Manrope;display:block;line-height:1.1;color:#fff}
+.stats span{font-size:12.5px;color:var(--mu)}
+@media(max-width:960px){.stats{grid-template-columns:1fr 1fr;gap:22px 0}.stats>*{border:0;padding:0 22px}.stats>:first-child{grid-column:1/3}}
+/* final */
+.final{text-align:center;padding:90px 0 80px;position:relative;overflow:hidden}
+.final svg.w{position:absolute;left:0;bottom:0;width:100%;height:60%;pointer-events:none}
+.final .logo{justify-content:center;font-size:34px;margin-bottom:26px}.final .logo img{width:46px;height:46px}
+.final h2{font-size:clamp(26px,3.4vw,36px);margin-bottom:14px}
+.final p{color:var(--mu);max-width:480px;margin:0 auto 30px}
+.final .cta{justify-content:center}
+footer{padding:26px 0;border-top:1px solid #151d52;color:#6f7bb0;font-size:13px;text-align:center;position:relative;z-index:1;background:var(--bg)}
+</style>
 </head>
 <body>
-  <p>Redirecionando para o <a href="public/index.php?page=login">Inova CRM</a>...</p>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.8a3.5 3.5 0 010 6.4M18 14.5c2 .7 3.5 2.4 3.5 5.5"/></symbol>
+<symbol id="funnel" viewBox="0 0 24 24"><path d="M3 4h18l-7 8.5V20l-4-2v-5.5z"/></symbol>
+<symbol id="task" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="17" rx="3"/><path d="M9 3v3h6V3M8.5 13l2.5 2.5 4.5-5"/></symbol>
+<symbol id="target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/></symbol>
+<symbol id="shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+<symbol id="mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7l8.5 6 8.5-6"/></symbol>
+<symbol id="bolt" viewBox="0 0 24 24"><path d="M13 3L5 13.5h6L10 21l8-10.5h-6z"/></symbol>
+<symbol id="chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+<symbol id="play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></symbol>
+</defs></svg>
+
+<nav><div class="wrap">
+  <a class="logo" href="#top"><img src="public/assets/brand-mark.png" alt="">Inova <span>CRM</span></a>
+  <div class="menu"><a href="#recursos">Funcionalidades</a><a href="#experiencia">Benefícios</a><a href="#planos">Planos</a><a href="#seguranca">Segurança</a></div>
+  <div class="act"><a class="btn o s" href="public/index.php?page=login">Entrar</a><a class="btn p s" href="#contato">Começar agora</a></div>
+</div></nav>
+
+<header class="hero" id="top">
+  <div class="glow g1"></div><div class="glow g2"></div>
+  <div class="wrap hgrid">
+    <div>
+      <div class="pill"><i></i>O CRM que impulsiona o seu negócio</div>
+      <h1>Gestão de clientes, vendas e <em>oportunidades</em> em um só lugar.</h1>
+      <p class="lead">O Inova CRM é a plataforma para você organizar seu atendimento, acompanhar suas vendas, gerenciar tarefas e transformar oportunidades em resultados.</p>
+      <div class="cta"><a class="btn p" href="#contato">Comece gratuitamente <svg class="i"><use href="#bolt"/></svg></a><a class="btn o" href="#experiencia"><svg class="i"><use href="#play"/></svg>Ver como funciona</a></div>
+      <div class="trust"><span><svg class="i"><use href="#mail"/></svg>Sem cartão de crédito</span><span><svg class="i"><use href="#bolt"/></svg>Configuração em minutos</span><span><svg class="i"><use href="#chat"/></svg>Suporte especializado</span></div>
+    </div>
+    <div class="dev" aria-label="Prévia do painel">
+      <div class="lap">
+        <div class="sb"><b><img src="public/assets/brand-mark.png" alt="">Inova CRM</b><a class="on" href="#">Dashboard</a><a href="#">Clientes</a><a href="#">Oportunidades</a><a href="#">Tarefas</a><a href="#">Usuários</a></div>
+        <div class="mn">
+          <h4>Olá, Tiago!</h4><small>Aqui está um resumo do seu dia.</small>
+          <div class="kp"><div><span>Clientes</span><strong>124</strong><em>↑ 12%</em></div><div><span>Oportunidades</span><strong>18</strong><em>↑ 20%</em></div><div><span>Pipeline</span><strong>R$ 28.450</strong><em>↑ 32%</em></div><div><span>Tarefas</span><strong>7</strong><em>pendentes</em></div></div>
+          <div class="pn">
+            <div><h5>Vendas nos últimos 6 meses</h5>
+              <svg viewBox="0 0 300 110"><defs><linearGradient id="gA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6c6cff" stop-opacity=".5"/><stop offset="1" stop-color="#6c6cff" stop-opacity="0"/></linearGradient></defs><path d="M0 90 C30 80 50 88 80 74 S130 62 160 56 S210 40 240 34 S280 22 300 14 V110 H0Z" fill="url(#gA)"/><path d="M0 90 C30 80 50 88 80 74 S130 62 160 56 S210 40 240 34 S280 22 300 14" fill="none" stroke="#8b8bff" stroke-width="2.5"/></svg></div>
+            <div><h5>Pipeline de vendas</h5><div class="st">
+              <div><span>Qualificado</span><span>R$ 15.200</span><i style="--w:80%"></i></div>
+              <div><span>Proposta</span><span>R$ 22.600</span><i style="--w:60%"></i></div>
+              <div><span>Negociação</span><span>R$ 18.300</span><i style="--w:40%"></i></div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="ph"><b style="font:700 11px Manrope;display:flex;gap:5px;align-items:center"><img src="public/assets/brand-mark.png" width="16" style="border-radius:5px" alt="">Inova CRM</b><h6>Hoje</h6>
+        <div><span>Clientes<strong>124</strong></span></div><div><span>Oportunidades<strong>18</strong></span></div><div><span>Tarefas<strong>7</strong></span></div></div>
+    </div>
+  </div>
+</header>
+
+<section class="sec band" id="recursos"><div class="wrap">
+  <div class="two"><div><div class="lbl">Tudo o que você precisa</div><h2>Mais organização,<br><em>mais resultados.</em></h2></div>
+  <p>O Inova CRM foi desenvolvido para simplificar o seu dia a dia e te dar o controle total do seu negócio. Com uma interface intuitiva e recursos poderosos, você foca no que realmente importa: seus clientes e o crescimento da sua empresa.</p></div>
+  <div class="feats">
+    <div class="f"><div class="ic"><svg class="i"><use href="#users"/></svg></div><h3>Gestão de Clientes</h3><p>Armazene e organize todas as informações dos seus clientes em um só lugar.</p></div>
+    <div class="f"><div class="ic"><svg class="i"><use href="#funnel"/></svg></div><h3>Pipeline de Vendas</h3><p>Acompanhe cada etapa do seu processo comercial e aumente sua taxa de conversão.</p></div>
+    <div class="f"><div class="ic"><svg class="i"><use href="#task"/></svg></div><h3>Tarefas e Prazos</h3><p>Nunca mais perca um prazo. Mantenha sua equipe alinhada e produtiva.</p></div>
+    <div class="f"><div class="ic"><svg class="i"><use href="#target"/></svg></div><h3>Oportunidades</h3><p>Registre valor, etapa e previsão de fechamento de cada negócio.</p></div>
+    <div class="f"><div class="ic"><svg class="i"><use href="#shield"/></svg></div><h3>Dados Protegidos</h3><p>Cada empresa tem seu próprio espaço, separado e seguro.</p></div>
+  </div>
+</div></section>
+
+<section class="sec" id="experiencia"><div class="wrap flow">
+  <div class="fc">
+    <div class="box a"><h3>Do contato ao fechamento</h3><p>Acompanhe todo o ciclo de vendas com mais clareza e eficiência.</p>
+      <div class="steps"><div><i></i>Novo</div><div><i></i>Contato</div><div><i></i>Proposta</div><div><i></i>Negociação</div><div><i></i>Ganho<b>R$ 28.450</b></div></div></div>
+    <div class="box b"><small style="color:var(--mu)">Vendas</small><div class="big">R$ 28.450</div><small style="color:#34d399">↑ 32%</small>
+      <svg viewBox="0 0 200 70" style="width:100%;margin-top:6px"><path d="M0 60 C30 56 40 58 70 46 S110 40 130 30 S175 18 200 8" fill="none" stroke="#8b8bff" stroke-width="2.5"/></svg></div>
+    <div class="box c"><h3 style="font-size:14px;margin:0">Empresa Exemplo</h3><small style="display:block;color:var(--mu);margin-bottom:2px">Oportunidade em negociação</small><div class="bar"><i></i></div><small><span>75%</span><span>Ver detalhes</span></small></div>
+  </div>
+  <div><div class="lbl">Tecnologia e inovação</div><h2>Uma experiência moderna e intuitiva.</h2>
+    <p>O Inova CRM combina design moderno com alta performance, para que você tenha uma experiência fluida, rápida e agradável, em qualquer dispositivo.</p>
+    <div class="checks"><div><i>✓</i>Design responsivo (mobile e desktop)</div><div><i>✓</i>Limites claros por plano, direto no painel</div><div><i>✓</i>Segurança e confiabilidade dos seus dados</div></div></div>
+</div></section>
+
+<section class="sec band" id="planos"><div class="wrap">
+  <div class="lbl">Planos</div><h2>Comece de graça, <em>cresça no seu ritmo.</em></h2>
+  <div class="plans">
+    <div class="pl"><h3>Free</h3><div class="pr">R$ 0<small> /mês</small></div><ul><li>5 clientes</li><li>5 oportunidades abertas</li><li>5 tarefas ativas</li><li>1 usuário</li></ul><a class="btn o" href="#contato">Solicitar acesso</a></div>
+    <div class="pl h"><h3>Pro</h3><div class="pr">R$ 29,90<small> /mês</small></div><ul><li>100 clientes</li><li>100 oportunidades abertas</li><li>100 tarefas ativas</li><li>3 usuários</li></ul><a class="btn p" href="#contato">Solicitar acesso</a></div>
+    <div class="pl"><h3>Premium</h3><div class="pr">R$ 49,90<small> /mês</small></div><ul><li>500 clientes</li><li>500 oportunidades abertas</li><li>500 tarefas ativas</li><li>5 usuários</li></ul><a class="btn o" href="#contato">Solicitar acesso</a></div>
+  </div>
+</div></section>
+
+<section class="sec" id="seguranca" style="padding-bottom:20px"><div class="wrap">
+  <div class="stats"><div>Feito para quem<br>vende todos os dias</div>
+    <div><strong>3</strong><span>planos para escolher</span></div>
+    <div><strong>7</strong><span>etapas no funil de vendas</span></div>
+    <div><strong>100%</strong><span>dados separados por empresa</span></div>
+    <div><strong>R$ 0</strong><span>para começar</span></div></div>
+</div></section>
+
+<section class="final" id="contato">
+  <svg class="w" viewBox="0 0 1200 300" preserveAspectRatio="none"><defs><linearGradient id="gw" x1="0" x2="1"><stop offset="0" stop-color="#4f46e5" stop-opacity=".55"/><stop offset="1" stop-color="#38bdf8" stop-opacity=".25"/></linearGradient></defs><path d="M0 220 C200 120 380 260 600 210 S1000 90 1200 140 V300 H0Z" fill="url(#gw)"/><path d="M0 250 C240 180 420 290 640 250 S1010 150 1200 200 V300 H0Z" fill="#0a1030" opacity=".8"/></svg>
+  <div class="wrap">
+    <div class="logo"><img src="public/assets/brand-mark.png" alt="">Inova <span>CRM</span></div>
+    <h2>Pronto para levar seu negócio<br>para o próximo nível?</h2>
+    <p>Peça seu acesso gratuito e descubra como o Inova CRM pode transformar a forma como você gerencia seus clientes e vendas.</p>
+    <div class="cta">
+      <!-- TROQUE o e-mail (ou use https://wa.me/55DDDNUMERO) -->
+      <a class="btn p" href="mailto:contato@seudominio.com.br?subject=Quero%20acesso%20ao%20Inova%20CRM">Solicitar acesso gratuito</a>
+      <a class="btn o" href="public/index.php?page=login">Entrar no painel</a>
+    </div>
+  </div>
+</section>
+<footer>© <script>document.write(new Date().getFullYear())</script> Inova CRM. Conecte. Organize. Cresça.</footer>
 </body>
 </html>
