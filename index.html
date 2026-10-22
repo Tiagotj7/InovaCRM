@@ -9,6 +9,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
+.contact-options{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:30px auto 0;max-width:900px;text-align:left}.contact-option{display:flex;align-items:center;gap:13px;padding:16px 18px;border:1px solid #35428d;border-radius:14px;background:#0a1030cc;transition:transform .15s,background .15s,border-color .15s}.contact-option:hover{transform:translateY(-2px);background:#111a4dcc;border-color:#6c6cff}.contact-option .ci{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--g);color:#fff;font-size:18px;font-weight:800;flex:none}.contact-option strong{display:block;font-size:14px}.contact-option small{display:block;color:var(--mu);font-size:12px;margin-top:2px}@media(max-width:700px){.contact-options{grid-template-columns:1fr;max-width:420px}.contact-option{padding:14px 16px}}
+</style>
+<style>
 :root{--bg:#050816;--card:#0a1030;--card2:#0d1540;--bd:#1c2660;--tx:#e8ecff;--mu:#9aa6d6;--ac:#6c6cff;--in:#5b4df5;--cy:#38bdf8;--g:linear-gradient(135deg,#7a63ff,#4f46e5)}
 *{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth;scroll-padding-top:80px}
@@ -246,9 +249,19 @@ footer{padding:26px 0;border-top:1px solid #151d52;color:#6f7bb0;font-size:13px;
     <div class="logo"><img src="public/assets/brand-mark.png" alt="">Inova <span>CRM</span></div>
     <h2>Pronto para levar seu negócio<br>para o próximo nível?</h2>
     <p>Peça seu acesso gratuito e descubra como o Inova CRM pode transformar a forma como você gerencia seus clientes e vendas.</p>
+    <div class="contact-options" aria-label="Canais para adquirir o Inova CRM">
+      <a class="contact-option" href="https://wa.me/5575981469914?text=Ol%C3%A1%21%20Quero%20adquirir%20o%20Inova%20CRM." target="_blank" rel="noopener">
+        <span class="ci">W</span><span><strong>WhatsApp</strong><small>(75) 98146-9914 · Fale agora</small></span>
+      </a>
+      <a class="contact-option" href="https://instagram.com/tiagocarvalho_dev" target="_blank" rel="noopener">
+        <span class="ci">◎</span><span><strong>Instagram</strong><small>@tiagocarvalho_dev · Conheça o projeto</small></span>
+      </a>
+      <a class="contact-option" href="mailto:tiagotj7dev@gmail.com?subject=Quero%20adquirir%20o%20Inova%20CRM&amp;body=Ol%C3%A1%2C%20quero%20conhecer%20os%20planos%20do%20Inova%20CRM." target="_blank" rel="noopener">
+        <span class="ci">@</span><span><strong>E-mail</strong><small>tiagotj7dev@gmail.com · Solicite informações</small></span>
+      </a>
+    </div>
     <div class="cta">
-      <!-- TROQUE o e-mail (ou use https://wa.me/55DDDNUMERO) -->
-      <a class="btn p" href="mailto:contato@seudominio.com.br?subject=Quero%20acesso%20ao%20Inova%20CRM">Solicitar acesso gratuito</a>
+      <a class="btn p" href="https://wa.me/5575981469914?text=Ol%C3%A1%21%20Quero%20adquirir%20o%20Inova%20CRM." target="_blank" rel="noopener">Solicitar acesso gratuito</a>
       <a class="btn o" href="public/index.php?page=login">Entrar no painel</a>
     </div>
   </div>
