@@ -1,0 +1,6 @@
+Landing do Inova CRM para a Vercel
+1) Suba esta pasta como um projeto na Vercel (framework: Other, sem build).
+2) Abra index.html e troque as 4 ocorrências de https://SEU-PROJETO.vercel.app
+   pelo domínio real que a Vercel gerar (canonical, og:url, og:image, twitter:image).
+3) Os botões "Entrar" já apontam para o sistema na InfinityFree.
+4) Compartilhe o link da Vercel no WhatsApp.
