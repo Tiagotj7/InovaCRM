@@ -32,13 +32,20 @@ final class Auth {
 
     public static function login(string $email, string $password): bool {
         [$emailHash, $ipHash] = self::loginHashes($email);
-        if (self::loginBlocked($emailHash, $ipHash)) return false;
+        // Se a tabela login_attempts ainda não existir no banco, o login continua
+        // funcionando (sem rate limit) e o problema fica registrado em storage/logs/app.log.
+        try {
+            if (self::loginBlocked($emailHash, $ipHash)) return false;
+        } catch (Throwable $t) {
+            app_log('rate limit de login indisponível (importe database/migrate_login_attempts.sql): ' . $t->getMessage());
+        }
 
         $q = db()->prepare('SELECT u.*,c.name company_name,c.status company_status,s.plan_code FROM users u JOIN companies c ON c.id=u.company_id LEFT JOIN company_subscriptions s ON s.company_id=c.id AND s.status="active" WHERE u.email=? AND u.status="active" AND u.deleted=0 LIMIT 1');
         $q->execute([strtolower(trim($email))]);
         $u = $q->fetch();
         if (!$u || !password_verify($password, (string)$u['password_hash'])) {
-            self::recordLoginFailure($emailHash, $ipHash);
+            try { self::recordLoginFailure($emailHash, $ipHash); }
+            catch (Throwable $t) { app_log('falha ao registrar tentativa de login: ' . $t->getMessage()); }
             return false;
         }
 
@@ -47,7 +54,8 @@ final class Auth {
         $_SESSION['user'] = $u;
         $_SESSION['last_activity'] = time();
         db()->prepare('UPDATE users SET last_login_at=NOW() WHERE id=?')->execute([$u['id']]);
-        db()->prepare('DELETE FROM login_attempts WHERE email_hash=?')->execute([$emailHash]);
+        try { db()->prepare('DELETE FROM login_attempts WHERE email_hash=?')->execute([$emailHash]); }
+        catch (Throwable $t) { app_log('falha ao limpar tentativas de login: ' . $t->getMessage()); }
         return true;
     }
 
