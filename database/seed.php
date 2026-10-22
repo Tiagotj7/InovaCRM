@@ -15,7 +15,7 @@ $db = db();
 $db->beginTransaction();
 $db->prepare('INSERT INTO companies(name,owner_name,email) VALUES(?,?,?)')->execute(['Inova CRM Admin', $name, $email]);
 $companyId = (int) $db->lastInsertId();
-$db->prepare('INSERT INTO company_subscriptions(company_id,plan_code) VALUES(?,?)')->execute([$companyId, 'premium']);
+$db->prepare('INSERT INTO company_subscriptions(company_id,plan_code) VALUES(?,?)')->execute([$companyId, 'admin']);
 $db->prepare('INSERT INTO users(company_id,name,email,password_hash,role) VALUES(?,?,?,?,?)')->execute([$companyId, $name, $email, password_hash($password, PASSWORD_DEFAULT), 'global_admin']);
 $db->commit();
 echo "Administrador criado com sucesso.\n";

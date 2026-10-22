@@ -19,7 +19,14 @@ function require_login(): void {
 }
 function require_admin(): void { require_login(); if((current_user()['role']??'')!=='global_admin'){ http_response_code(403); exit('Acesso negado.'); } }
 function tenant_id(): int { return (int)(current_user()['company_id']??0); }
-function plan_limits(): array { $p=current_user()['plan_code']??'free'; return ['free'=>['customers'=>5,'deals'=>5,'users'=>1,'tasks'=>5], 'pro'=>['customers'=>100,'deals'=>100,'users'=>3,'tasks'=>100], 'premium'=>['customers'=>500,'deals'=>500,'users'=>5,'tasks'=>500]][$p]??['customers'=>5,'deals'=>5,'users'=>1,'tasks'=>5]; }
+function is_super_admin(): bool { $u=current_user(); return ($u['role']??'')==='global_admin' || ($u['plan_code']??'')==='admin'; }
+function plan_limits(): array {
+    // Perfil "Administrador geral": sem limites, independente de qualquer plano comercial.
+    if(is_super_admin()){ $m=PHP_INT_MAX; return ['customers'=>$m,'deals'=>$m,'users'=>$m,'tasks'=>$m]; }
+    $p=current_user()['plan_code']??'free';
+    return ['free'=>['customers'=>5,'deals'=>5,'users'=>1,'tasks'=>5], 'pro'=>['customers'=>100,'deals'=>100,'users'=>3,'tasks'=>100], 'premium'=>['customers'=>500,'deals'=>500,'users'=>5,'tasks'=>500]][$p]??['customers'=>5,'deals'=>5,'users'=>1,'tasks'=>5];
+}
+function plan_limit_text(string $k): string { $v=plan_limits()[$k]??0; return $v>=PHP_INT_MAX ? 'ilimitado (Administrador geral)' : 'de '.$v.' no plano'; }
 function count_tenant(string $table,string $where='1=1',array $params=[]): int { $allowed=['customers','deals','tasks','users']; if(!in_array($table,$allowed,true)) return 0; $q=db()->prepare("SELECT COUNT(*) FROM `$table` WHERE company_id=? AND ($where)"); $q->execute(array_merge([tenant_id()],$params)); return (int)$q->fetchColumn(); }
 function limit_reached(string $type,string $where='1=1',array $params=[]): bool { $l=plan_limits(); return count_tenant($type,$where,$params)>=$l[$type]; }
 function audit(string $action,string $entity='',?int $entityId=null,string $details=''): void { $q=db()->prepare('INSERT INTO admin_audit_logs(user_id,company_id,action,entity,entity_id,details,created_at) VALUES(?,?,?,?,?,?,NOW())'); $u=current_user(); $q->execute([$u['id']??null,$u['company_id']??null,$action,$entity,$entityId,$details]); }
