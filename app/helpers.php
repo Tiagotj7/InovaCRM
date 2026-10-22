@@ -8,7 +8,15 @@ function csrf_token(): string { if(empty($_SESSION['_csrf'])) $_SESSION['_csrf']
 function verify_csrf(): void { if(!hash_equals($_SESSION['_csrf']??'',$_POST['_csrf']??'')){ http_response_code(419); exit('Token de segurança inválido.'); } }
 function post(string $key,string $default=''): string { return trim((string)($_POST[$key]??$default)); }
 function current_user(): ?array { return $_SESSION['user']??null; }
-function require_login(): void { if(!current_user()) redirect('index.php?page=login'); if(($_SESSION['user']['company_status']??'active')==='suspended') exit('Conta suspensa.'); }
+function require_login(): void {
+    if(!current_user()) redirect('index.php?page=login');
+    // Revalida no banco: suspensão, troca de perfil/nome/e-mail e plano valem imediatamente.
+    $q=db()->prepare('SELECT u.name,u.email,u.role,u.status,c.status company_status,s.plan_code FROM users u JOIN companies c ON c.id=u.company_id LEFT JOIN company_subscriptions s ON s.company_id=c.id AND s.status="active" WHERE u.id=? LIMIT 1');
+    $q->execute([$_SESSION['user']['id']]); $fresh=$q->fetch();
+    if(!$fresh || $fresh['status']!=='active'){ Auth::logout(); redirect('index.php?page=login'); }
+    $_SESSION['user']=array_merge($_SESSION['user'],$fresh);
+    if(($fresh['company_status']??'active')==='suspended') exit('Conta suspensa.');
+}
 function require_admin(): void { require_login(); if((current_user()['role']??'')!=='global_admin'){ http_response_code(403); exit('Acesso negado.'); } }
 function tenant_id(): int { return (int)(current_user()['company_id']??0); }
 function plan_limits(): array { $p=current_user()['plan_code']??'free'; return ['free'=>['customers'=>5,'deals'=>5,'users'=>1,'tasks'=>5], 'pro'=>['customers'=>100,'deals'=>100,'users'=>3,'tasks'=>100], 'premium'=>['customers'=>500,'deals'=>500,'users'=>5,'tasks'=>500]][$p]??['customers'=>5,'deals'=>5,'users'=>1,'tasks'=>5]; }

@@ -36,6 +36,30 @@ function role_label(string $r):string{return ['global_admin'=>'Admin global','ow
 function users_page():void {
  $me=current_user(); $isAdmin=($me['role']??'')==='global_admin';
  if(!$isAdmin && ($me['role']??'')!=='owner'){ http_response_code(403); exit('Acesso negado.'); }
+ if($_SERVER['REQUEST_METHOD']==='POST' && post('action')==='update_user'){
+  verify_csrf();
+  if(!$isAdmin){ http_response_code(403); exit('Acesso negado.'); }
+  $id=(int)($_POST['user_id']??0);
+  $t=db()->prepare('SELECT * FROM users WHERE id=?'); $t->execute([$id]); $target=$t->fetch();
+  if(!$target){ flash('error','Usuário não encontrado.'); redirect('index.php?page=users'); }
+  $self=$id===(int)$me['id'];
+  $name=post('name');$email=strtolower(post('email'));$pass=(string)($_POST['password']??'');
+  $role=($self||$target['role']==='global_admin')?$target['role']:post('role',$target['role']);
+  $status=$self?'active':post('status',$target['status']);
+  $err='';
+  if($name==='') $err='Informe o nome do usuário.';
+  elseif(!filter_var($email,FILTER_VALIDATE_EMAIL)) $err='E-mail inválido.';
+  elseif($pass!=='' && strlen($pass)<8) $err='A nova senha deve ter pelo menos 8 caracteres.';
+  elseif(!in_array($role,['member','owner','global_admin'],true) || ($role==='global_admin' && $target['role']!=='global_admin')) $err='Perfil inválido.';
+  elseif(!in_array($status,['active','suspended'],true)) $err='Status inválido.';
+  else { $ex=db()->prepare('SELECT 1 FROM users WHERE email=? AND id<>?'); $ex->execute([$email,$id]); if($ex->fetch()) $err='Já existe outro usuário com este e-mail.'; }
+  if($err!==''){ flash('error',$err); redirect('index.php?page=users&edit='.$id); }
+  db()->prepare('UPDATE users SET name=?,email=?,role=?,status=? WHERE id=?')->execute([$name,$email,$role,$status,$id]);
+  if($pass!=='') db()->prepare('UPDATE users SET password_hash=? WHERE id=?')->execute([password_hash($pass,PASSWORD_DEFAULT),$id]);
+  audit('user_updated','user',$id,'Editado: '.$email.' perfil='.$role.' status='.$status.($pass!==''?' (senha redefinida)':''));
+  flash('success','Usuário "'.$name.'" atualizado.'.($pass!==''?' Senha redefinida.':''));
+  redirect('index.php?page=users');
+ }
  if($_SERVER['REQUEST_METHOD']==='POST'){
   verify_csrf();
   $name=post('name');$email=strtolower(post('email'));$pass=(string)($_POST['password']??'');
@@ -66,8 +90,17 @@ function users_page():void {
  } else {
   $q=db()->prepare('SELECT u.*,c.name company_name FROM users u JOIN companies c ON c.id=u.company_id WHERE u.company_id=? ORDER BY u.created_at DESC'); $q->execute([tenant_id()]); $rows=$q->fetchAll();
  }
+ $edit=null; if($isAdmin && isset($_GET['edit'])){ $t=db()->prepare('SELECT * FROM users WHERE id=?'); $t->execute([(int)$_GET['edit']]); $edit=$t->fetch()?:null; }
  $limit=plan_limits()['users']; $used=count_tenant('users');
  ?><div class="page-actions"><p><?php if($isAdmin): ?>Como administrador global, você cria usuários em qualquer empresa (sem limite de plano).<?php else: ?>Seu plano permite <?=$limit?> usuário(s) · <?=$used?> em uso.<?php endif; ?></p></div>
+<?php if($edit): $lock=((int)$edit['id']===(int)$me['id']||$edit['role']==='global_admin'); ?><section class="card form-card"><div class="card-head"><h3>Editar usuário</h3><a href="index.php?page=users">Cancelar</a></div><form method="post" autocomplete="off"><input type="hidden" name="_csrf" value="<?=csrf_token()?>"><input type="hidden" name="action" value="update_user"><input type="hidden" name="user_id" value="<?=(int)$edit['id']?>"><div class="form-grid">
+<label>Nome<input name="name" required maxlength="160" value="<?=e($edit['name'])?>"></label>
+<label>E-mail de acesso<input type="email" name="email" required maxlength="190" value="<?=e($edit['email'])?>"></label>
+<label>Perfil<select name="role" <?=$lock?'disabled':''?>><?php foreach(['member'=>'Membro','owner'=>'Responsável','global_admin'=>'Admin global'] as $k=>$v): if($k==='global_admin' && $edit['role']!=='global_admin') continue; ?><option value="<?=$k?>" <?=$edit['role']===$k?'selected':''?>><?=$v?></option><?php endforeach; ?></select></label>
+<label>Status<select name="status" <?=((int)$edit['id']===(int)$me['id'])?'disabled':''?>><option value="active" <?=$edit['status']==='active'?'selected':''?>>Ativo</option><option value="suspended" <?=$edit['status']==='suspended'?'selected':''?>>Suspenso</option></select></label>
+<label>Nova senha (opcional)<input type="text" id="edit-pass" name="password" minlength="8" autocomplete="new-password" placeholder="Deixe em branco para manter"></label>
+<label>&nbsp;<button type="button" class="btn small" onclick="var a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789',r=new Uint32Array(12),o='';crypto.getRandomValues(r);for(var i=0;i<12;i++)o+=a[r[i]%a.length];document.getElementById('edit-pass').value=o;">Gerar senha</button></label>
+</div><?php if($lock): ?><p style="margin:0 0 12px;color:#64748b">Por segurança, o perfil de administradores globais não pode ser alterado, e você não pode suspender a si mesmo.</p><?php endif; ?><button class="btn primary">Salvar alterações</button></form></section><?php endif; ?>
 <section class="card form-card"><div class="card-head"><h3>Novo usuário</h3></div><p style="margin:0 0 12px;color:#64748b">Anote a senha antes de salvar: ela não pode ser vista depois.</p><form method="post" autocomplete="off"><input type="hidden" name="_csrf" value="<?=csrf_token()?>"><div class="form-grid">
 <label>Nome<input name="name" required maxlength="160"></label>
 <label>E-mail de acesso<input type="email" name="email" required maxlength="190"></label>
@@ -75,5 +108,5 @@ function users_page():void {
 <label>&nbsp;<button type="button" class="btn small" onclick="var a='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789',r=new Uint32Array(12),o='';crypto.getRandomValues(r);for(var i=0;i<12;i++)o+=a[r[i]%a.length];document.getElementById('user-pass').value=o;">Gerar senha</button></label>
 <?php if($isAdmin): ?><label>Empresa<select name="company_id" required><?php foreach($companies as $x): ?><option value="<?=(int)$x['id']?>"><?=e($x['name'])?></option><?php endforeach; ?></select></label><label>Perfil<select name="role"><option value="member">Membro</option><option value="owner">Responsável</option></select></label><?php endif; ?>
 </div><button class="btn primary">Criar usuário</button></form></section>
-<section class="card"><div class="card-head"><h3>Usuários</h3><span class="counter"><?=count($rows)?> registros</span></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><?php if($isAdmin): ?><th>Empresa</th><?php endif; ?><th>Último acesso</th><th>Status</th></tr></thead><tbody><?php foreach($rows as $r): ?><tr><td><strong><?=e($r['name'])?></strong></td><td><?=e($r['email'])?></td><td><span class="badge <?=$r['role']==='member'?'new':'pro'?>"><?=e(role_label($r['role']))?></span></td><?php if($isAdmin): ?><td><?=e($r['company_name'])?></td><?php endif; ?><td><?=e($r['last_login_at']?date('d/m/Y H:i',strtotime($r['last_login_at'])):'—')?></td><td><span class="badge <?=$r['status']==='active'?'won':'lost'?>"><?=e($r['status']==='active'?'Ativo':'Suspenso')?></span></td></tr><?php endforeach; ?></tbody></table></div></section><?php layout_end(); }
+<section class="card"><div class="card-head"><h3>Usuários</h3><span class="counter"><?=count($rows)?> registros</span></div><div class="table-wrap"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><?php if($isAdmin): ?><th>Empresa</th><?php endif; ?><th>Último acesso</th><th>Status</th><?php if($isAdmin): ?><th>Ações</th><?php endif; ?></tr></thead><tbody><?php foreach($rows as $r): ?><tr><td><strong><?=e($r['name'])?></strong></td><td><?=e($r['email'])?></td><td><span class="badge <?=$r['role']==='member'?'new':'pro'?>"><?=e(role_label($r['role']))?></span></td><?php if($isAdmin): ?><td><?=e($r['company_name'])?></td><?php endif; ?><td><?=e($r['last_login_at']?date('d/m/Y H:i',strtotime($r['last_login_at'])):'—')?></td><td><span class="badge <?=$r['status']==='active'?'won':'lost'?>"><?=e($r['status']==='active'?'Ativo':'Suspenso')?></span></td><?php if($isAdmin): ?><td><a class="btn small" style="margin:0;width:auto;background:#eef2ff;color:#4f46e5" href="index.php?page=users&edit=<?=(int)$r['id']?>">Editar</a></td><?php endif; ?></tr><?php endforeach; ?></tbody></table></div></section><?php layout_end(); }
 function stage_labels():array{return ['new'=>'Novo contato','contacted'=>'Primeiro contato','qualified'=>'Qualificação','proposal'=>'Proposta enviada','negotiation'=>'Negociação','won'=>'Venda ganha','lost'=>'Venda perdida'];} function stage_label(string $s):string{return stage_labels()[$s]??$s;}
