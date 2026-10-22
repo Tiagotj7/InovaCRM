@@ -18,6 +18,10 @@ function require_login(): void {
     if(($fresh['company_status']??'active')==='suspended') exit('Conta suspensa.');
 }
 function require_admin(): void { require_login(); if((current_user()['role']??'')!=='global_admin'){ http_response_code(403); exit('Acesso negado.'); } }
+function is_global_admin(): bool { return (current_user()['role']??'')==='global_admin'; }
+// Exclusão é exclusiva do administrador geral: valida perfil (403) e CSRF no servidor.
+function require_admin_delete(): void { if(!is_global_admin()){ http_response_code(403); exit('Acesso negado.'); } verify_csrf(); }
+function delete_button(string $page,string $action,string $field,int $id,string $confirm): void { ?><form method="post" action="index.php?page=<?=e($page)?>" style="display:inline" onsubmit="return confirm(<?=e(json_encode($confirm,JSON_UNESCAPED_UNICODE))?>);"><input type="hidden" name="_csrf" value="<?=csrf_token()?>"><input type="hidden" name="action" value="<?=e($action)?>"><input type="hidden" name="<?=e($field)?>" value="<?=$id?>"><button class="btn small danger">Excluir</button></form><?php }
 function tenant_id(): int { return (int)(current_user()['company_id']??0); }
 function is_super_admin(): bool { $u=current_user(); return ($u['role']??'')==='global_admin' || ($u['plan_code']??'')==='admin'; }
 function plan_limits(): array {
