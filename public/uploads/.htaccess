@@ -1,7 +1,4 @@
-# Pasta de fotos enviadas: nunca executar scripts aqui.
-<IfModule mod_php.c>
-    php_flag engine off
-</IfModule>
+# Pasta de fotos enviadas: nunca servir/executar scripts aqui.
 <FilesMatch "\.(php|phtml|phar|php[0-9]|pl|py|cgi|sh)$">
     <IfModule mod_authz_core.c>
         Require all denied
@@ -11,4 +8,3 @@
         Deny from all
     </IfModule>
 </FilesMatch>
-Options -Indexes -ExecCGI

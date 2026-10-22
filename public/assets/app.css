@@ -18,7 +18,7 @@
 .profile-hero{padding:0;overflow:hidden;margin-top:26px}
 .profile-cover{height:120px;background:var(--grad);position:relative}.profile-cover:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 0,#ffffff33,transparent 55%)}
 .profile-head{display:flex;align-items:flex-start;gap:22px;padding:0 28px;margin-top:-56px;position:relative;flex-wrap:wrap}
-.avatar-wrap{position:relative;flex:none}.avatar-form{margin:0}
+.avatar-wrap{position:relative;flex:none}.avatar-form{margin:0}body.avatar-busy .avatar-xl{opacity:.55;filter:grayscale(.4)}body.avatar-busy .avatar-edit{pointer-events:none;opacity:.6}
 .avatar-edit{position:absolute;right:2px;bottom:4px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--indigo);color:#fff;border:3px solid #fff;cursor:pointer;transition:transform .15s,background .15s}.avatar-edit:hover{background:#4338ca;transform:scale(1.08)}
 .profile-id{flex:1;min-width:200px;padding-top:68px}.profile-id h2{margin:0 0 4px;font-size:24px}.profile-id p{margin:0 0 10px;color:var(--muted)}.profile-tags{display:flex;gap:8px;flex-wrap:wrap}
 .profile-remove{margin:0;padding-top:76px}

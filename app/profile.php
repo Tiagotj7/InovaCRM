@@ -50,10 +50,13 @@ function process_avatar_upload(array $file, int $userId): array {
     $info = @getimagesize($tmp);
     if ($mime === '' && $info) $mime = (string)$info['mime'];
     if (!$info || !in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) return [null, 'Use uma imagem JPG, PNG ou WebP.'];
-    if (!function_exists('imagecreatefromstring')) return [null, 'O servidor não tem suporte para processar imagens (extensão GD).'];
+    if (!function_exists('imagecreatefromstring')) { app_log('avatar: extensão GD ausente'); return [null, 'O servidor não tem suporte para processar imagens (extensão GD).']; }
+    // Foto de celular tem muitos megapixels e consome muita memória ao decodificar.
+    if ((int)$info[0] * (int)$info[1] > 30000000) return [null, 'A imagem tem resolução muito alta. Reduza o tamanho e tente de novo.'];
+    @ini_set('memory_limit', '256M');
 
     $src = @imagecreatefromstring((string)file_get_contents($tmp));
-    if (!$src) return [null, 'Não foi possível ler a imagem.'];
+    if (!$src) { app_log('avatar: imagecreatefromstring falhou (mime ' . $mime . ')'); return [null, 'Não foi possível ler a imagem. Tente outro arquivo JPG ou PNG.']; }
 
     // Corrige a rotação de fotos de celular (EXIF).
     if ($mime === 'image/jpeg' && function_exists('exif_read_data')) {
@@ -70,11 +73,13 @@ function process_avatar_upload(array $file, int $userId): array {
     imagedestroy($src);
 
     $dir = avatar_dir();
-    if (!is_dir($dir) && !@mkdir($dir, 0755, true)) { imagedestroy($dst); return [null, 'Não foi possível salvar a imagem no servidor.']; }
+    if (!is_dir($dir) && !@mkdir($dir, 0755, true)) { imagedestroy($dst); app_log('avatar: não foi possível criar ' . $dir); return [null, 'Não foi possível salvar a imagem no servidor (pasta de fotos sem permissão).']; }
+    if (!is_writable($dir)) { @chmod($dir, 0755); }
+    if (!is_writable($dir)) { imagedestroy($dst); app_log('avatar: pasta sem permissão de escrita ' . $dir); return [null, 'A pasta de fotos do servidor não permite gravação. Ajuste a permissão de public/uploads/avatars para 755 ou 775.']; }
     $name = 'u' . $userId . '_' . bin2hex(random_bytes(8)) . '.jpg';
     $ok = @imagejpeg($dst, $dir . '/' . $name, 86);
     imagedestroy($dst);
-    if (!$ok) return [null, 'Não foi possível salvar a imagem no servidor.'];
+    if (!$ok) { app_log('avatar: imagejpeg falhou em ' . $dir); return [null, 'Não foi possível salvar a imagem no servidor.']; }
     return [$name, null];
 }
 
@@ -89,6 +94,11 @@ function profile_page(): void {
     $id = (int)$me['id'];
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Arquivo maior que post_max_size: o PHP descarta o formulário inteiro (inclusive o token).
+        if (!$_POST && !$_FILES && (int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+            flash('error', 'A imagem é grande demais para o servidor. Escolha uma foto menor.');
+            redirect('index.php?page=profile');
+        }
         verify_csrf();
         $action = post('action');
         $row = db()->prepare('SELECT * FROM users WHERE id=?'); $row->execute([$id]); $cur = $row->fetch();
@@ -112,7 +122,8 @@ function profile_page(): void {
         }
 
         if ($action === 'upload_avatar') {
-            [$fileName, $err] = process_avatar_upload($_FILES['avatar'] ?? [], $id);
+            try { [$fileName, $err] = process_avatar_upload($_FILES['avatar'] ?? [], $id); }
+            catch (Throwable $t) { app_log('avatar: ' . get_class($t) . ': ' . $t->getMessage()); [$fileName, $err] = [null, 'Falha ao processar a imagem. Tente uma foto menor.']; }
             if ($err !== null) { flash('error', $err); redirect('index.php?page=profile'); }
             db()->prepare('UPDATE users SET avatar=? WHERE id=?')->execute([$fileName, $id]);
             delete_avatar_file($cur['avatar'] ?? null);
@@ -162,7 +173,7 @@ function profile_page(): void {
         <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
         <input type="hidden" name="action" value="upload_avatar">
         <input type="hidden" name="MAX_FILE_SIZE" value="<?= AVATAR_MAX_BYTES ?>">
-        <input type="file" name="avatar" id="avatar-input" accept="image/jpeg,image/png,image/webp" hidden onchange="this.form.submit()">
+        <input type="file" name="avatar" id="avatar-input" accept="image/jpeg,image/png,image/webp" hidden>
         <label for="avatar-input" class="avatar-edit" title="Alterar foto" aria-label="Alterar foto">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
         </label>
@@ -217,4 +228,32 @@ function profile_page(): void {
     </form>
   </section>
 </div>
+<script>
+(function(){
+  var input=document.getElementById('avatar-input'); if(!input) return;
+  var form=input.form, SIZE=480;
+  function fail(msg){ var d=document.createElement('div'); d.className='flash error'; d.textContent=msg; var m=document.querySelector('.main'); m.insertBefore(d,m.querySelector('.topbar').nextSibling); window.scrollTo(0,0); }
+  function load(file){
+    if(window.createImageBitmap) return createImageBitmap(file,{imageOrientation:'from-image'}).catch(function(){return createImageBitmap(file);});
+    return new Promise(function(ok,no){var i=new Image(),u=URL.createObjectURL(file);i.onload=function(){ok(i);};i.onerror=no;i.src=u;});
+  }
+  input.addEventListener('change',function(){
+    var f=input.files&&input.files[0]; if(!f) return;
+    if(!/^image\/(jpeg|png|webp)$/.test(f.type)){ fail('Use uma imagem JPG, PNG ou WebP.'); input.value=''; return; }
+    document.body.classList.add('avatar-busy');
+    load(f).then(function(img){
+      var w=img.width,h=img.height,s=Math.min(w,h),c=document.createElement('canvas'); c.width=c.height=SIZE;
+      var x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,SIZE,SIZE); x.imageSmoothingQuality='high';
+      x.drawImage(img,(w-s)/2,(h-s)/2,s,s,0,0,SIZE,SIZE);
+      c.toBlob(function(b){
+        if(!b){ form.submit(); return; }
+        var fd=new FormData(form); fd.set('avatar',b,'avatar.jpg'); fd.delete('MAX_FILE_SIZE');
+        fetch(form.getAttribute('action')||location.href,{method:'POST',body:fd,credentials:'same-origin',redirect:'manual'})
+          .then(function(){ location.href='index.php?page=profile'; })
+          .catch(function(){ location.href='index.php?page=profile'; });
+      },'image/jpeg',0.88);
+    }).catch(function(){ form.submit(); });
+  });
+})();
+</script>
 <?php layout_end(); }
