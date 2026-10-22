@@ -15,3 +15,11 @@
 13. Testar telas em viewport móvel.
 14. Simular indisponibilidade do banco e confirmar mensagem genérica no ambiente público.
 15. Restaurar um backup em banco separado e conferir contagens.
+
+16. Login: enviar credenciais inválidas e confirmar bloqueio após 5 falhas em 15 minutos para o mesmo e-mail; confirmar limite agregado por IP.
+17. Login/logout: enviar formulários sem CSRF e confirmar erro 419; conferir que logout por GET não encerra a sessão.
+18. Sessão: após 30 minutos de inatividade, confirmar redirecionamento para o login.
+19. Tarefas: concluir e reabrir tarefa; tentar usar ID de outra empresa e confirmar que nada é alterado.
+20. Oportunidades: editar título, valor, cliente e etapa; tentar cliente de outra empresa, etapa inválida, data inválida e valor negativo.
+21. Conferir que o valor do pipeline exclui oportunidades ganhas e perdidas.
+22. Acessar `/.env`, `/.ftp-deploy-sync-state.json` e `/database/schema.sql`; confirmar resposta 403/404 no servidor de produção.

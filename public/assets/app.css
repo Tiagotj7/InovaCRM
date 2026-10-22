@@ -88,3 +88,10 @@ td form{display:inline-block}
 
 /* Marca compacta e nítida para a tela de login */
 .login-brand{display:flex;align-items:center;justify-content:center;gap:12px;margin:2px auto 15px}.login-brand img{display:block;width:58px;height:58px;object-fit:contain;border-radius:15px;box-shadow:0 0 28px #4f46e566}.login-brand span{font:800 30px/1 Manrope,Inter,sans-serif;letter-spacing:-1.4px;color:#f8fafc}.login-brand b{color:#818cf8;font-weight:600;letter-spacing:3px;margin-left:3px}.login-card .tagline{margin:0 0 25px}.login-card h1{margin-top:0}
+
+/* Logout preserva o estilo dos links, mas usa POST protegido por CSRF. */
+.sidebar nav .logout-form button{display:block;width:100%;text-align:left;color:#a9b5df;text-decoration:none;padding:13px 14px;border:0;border-radius:10px;background:transparent;font-family:inherit;font-size:15px;font-weight:500;cursor:pointer}
+.sidebar nav .logout-form button:hover{background:#ffffff0d;color:#fff}
+.profile-dd .dd-logout{margin:0;padding:0}
+.profile-dd .dd-logout button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:11px 12px;border-radius:10px;color:var(--red);font-family:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.profile-dd .dd-logout button:hover{background:#fee2e2}

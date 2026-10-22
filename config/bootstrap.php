@@ -77,12 +77,28 @@ date_default_timezone_set($config['timezone'] ?? 'America/Sao_Paulo');
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
 
+// Cabeçalhos básicos; CSP fica para uma etapa própria, pois a interface usa
+// estilos/scripts inline e fontes externas.
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+header('Cache-Control: no-store, private');
+
 ini_set('session.use_strict_mode', '1');
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Lax');
 if ($isHttps) ini_set('session.cookie_secure', '1');
 session_name($config['session_name'] ?? 'inova_crm');
 session_start();
+
+// Encerra sessões após 30 minutos sem atividade e troca o identificador.
+$now = time();
+if (isset($_SESSION['last_activity']) && $now - (int)$_SESSION['last_activity'] > 1800) {
+    $_SESSION = [];
+    session_regenerate_id(true);
+}
+$_SESSION['last_activity'] = $now;
 
 require_once __DIR__ . '/../app/helpers.php';
 require_once __DIR__ . '/../app/Database.php';

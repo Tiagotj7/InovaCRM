@@ -46,9 +46,9 @@ Se a hospedagem não tiver SSH, execute o seed localmente contra o banco remoto 
 
 ## Segurança implementada
 
-PDO com prepared statements, hash de senhas, regeneração de sessão, cookie HttpOnly/SameSite, CSRF em mutações, escape HTML, checagem de tenant em clientes e oportunidades, validação de cliente pertencente à empresa, autorização do painel global e auditoria administrativa.
+PDO com prepared statements, hash de senhas, regeneração de sessão, cookie HttpOnly/SameSite, timeout de sessão por inatividade, cabeçalhos HTTP básicos, CSRF em mutações e login/logout, escape HTML, checagem de tenant, validações de entrada, rate limit persistente de login, autorização do painel global e auditoria administrativa. O limite bloqueia após 5 falhas por e-mail ou 20 por IP em 15 minutos; o IP é armazenado como hash.
 
-Para produção ainda recomendamos rate limiting persistente de login, recuperação de senha, política de privacidade/LGPD, backup externo criptografado, monitoramento e revisão profissional.
+Para produção ainda recomendamos recuperação de senha segura, MFA para administradores, política de privacidade/LGPD, backup externo criptografado, monitoramento, uso de SFTP/FTPS no deploy e revisão profissional.
 
 ## Backup
 
@@ -60,12 +60,12 @@ A alteração de plano é manual pelo administrador. Não há gateway de pagamen
 
 ## Publicação na InfinityFree (sem SSH)
 
-1. Importe `database/schema.sql` no phpMyAdmin do banco da hospedagem.
+1. Importe `database/schema.sql` no phpMyAdmin do banco da hospedagem. Se estiver atualizando um banco existente, importe também `database/migrate_login_attempts.sql` antes de publicar a versão atualizada.
 2. Gere o hash da senha no seu computador (`php -r "echo password_hash('SUA_SENHA', PASSWORD_DEFAULT);"`), edite `database/create_admin.sql` e execute na aba SQL.
 3. O deploy do GitHub **não envia o `.env`** (está no `exclude` do workflow e no `.gitignore`). Envie o `.env` uma vez por FTP/Gerenciador de Arquivos para `/htdocs/.env`, com os dados do banco da hospedagem (`DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
 4. Acesse `https://seu-dominio/public/index.php?page=login`.
 
-Os arquivos `.htaccess` incluídos bloqueiam o acesso web a `.env`, `app/`, `config/`, `database/`, `storage/` e `tests/`. Confirme abrindo `https://seu-dominio/.env`: deve dar 403.
+Os arquivos `.htaccess` incluídos bloqueiam arquivos ocultos e extensões privadas, além de diretórios como `app/`, `config/`, `database/`, `storage/` e `tests/`. Confirme abrindo `https://seu-dominio/.env`, `/.ftp-deploy-sync-state.json` e `/database/schema.sql`: devem retornar 403/404. O `.htaccess` depende de Apache e pode ser ignorado por outros servidores; prefira apontar o document root para `public/`.
 
 ## Se aparecer erro ao entrar
 
