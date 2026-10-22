@@ -44,10 +44,27 @@ function process_avatar_upload(array $file, int $userId): array {
     $tmp = (string)($file['tmp_name'] ?? '');
     if ($tmp === '' || !is_file($tmp)) return [null, 'Envio inválido.'];
     if ((int)($file['size'] ?? 0) > AVATAR_MAX_BYTES) return [null, 'A imagem é grande demais (máx. 4 MB).'];
+    return process_avatar_bytes((string)file_get_contents($tmp), $userId, $tmp);
+}
 
+/**
+ * Foto enviada como texto (base64) pelo formulário comum: contorna firewalls de
+ * hospedagem que bloqueiam (403) o envio de arquivos binários.
+ */
+function process_avatar_base64(string $data, int $userId): array {
+    if (preg_match('#^data:image/(jpeg|png|webp);base64,#i', $data, $m)) $data = substr($data, strlen($m[0]));
+    $data = preg_replace('/\s+/', '', $data);
+    if ($data === '' || strlen($data) > (int)(AVATAR_MAX_BYTES * 1.4)) return [null, 'A imagem é grande demais ou está vazia.'];
+    $bytes = base64_decode((string)$data, true);
+    if ($bytes === false || $bytes === '') return [null, 'Imagem inválida.'];
+    return process_avatar_bytes($bytes, $userId, null);
+}
+
+/** Valida o conteúdo real da imagem, corta em quadrado, reduz e salva como JPEG. */
+function process_avatar_bytes(string $bytes, int $userId, ?string $exifFile): array {
     $mime = '';
-    if (function_exists('finfo_open')) { $fi = finfo_open(FILEINFO_MIME_TYPE); $mime = (string)finfo_file($fi, $tmp); finfo_close($fi); }
-    $info = @getimagesize($tmp);
+    if (function_exists('finfo_open')) { $fi = finfo_open(FILEINFO_MIME_TYPE); $mime = (string)finfo_buffer($fi, $bytes); finfo_close($fi); }
+    $info = @getimagesizefromstring($bytes);
     if ($mime === '' && $info) $mime = (string)$info['mime'];
     if (!$info || !in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) return [null, 'Use uma imagem JPG, PNG ou WebP.'];
     if (!function_exists('imagecreatefromstring')) { app_log('avatar: extensão GD ausente'); return [null, 'O servidor não tem suporte para processar imagens (extensão GD).']; }
@@ -55,12 +72,12 @@ function process_avatar_upload(array $file, int $userId): array {
     if ((int)$info[0] * (int)$info[1] > 30000000) return [null, 'A imagem tem resolução muito alta. Reduza o tamanho e tente de novo.'];
     @ini_set('memory_limit', '256M');
 
-    $src = @imagecreatefromstring((string)file_get_contents($tmp));
+    $src = @imagecreatefromstring($bytes);
     if (!$src) { app_log('avatar: imagecreatefromstring falhou (mime ' . $mime . ')'); return [null, 'Não foi possível ler a imagem. Tente outro arquivo JPG ou PNG.']; }
 
     // Corrige a rotação de fotos de celular (EXIF).
-    if ($mime === 'image/jpeg' && function_exists('exif_read_data')) {
-        $exif = @exif_read_data($tmp);
+    if ($exifFile !== null && $mime === 'image/jpeg' && function_exists('exif_read_data')) {
+        $exif = @exif_read_data($exifFile);
         $rot = [3 => 180, 6 => -90, 8 => 90][(int)($exif['Orientation'] ?? 1)] ?? 0;
         if ($rot !== 0) { $r = imagerotate($src, $rot, 0); if ($r) { imagedestroy($src); $src = $r; } }
     }
@@ -138,7 +155,7 @@ function profile_page(): void {
         }
 
         if ($action === 'upload_avatar') {
-            try { [$fileName, $err] = process_avatar_upload($_FILES['avatar'] ?? [], $id); }
+            try { [$fileName, $err] = isset($_POST['avatar_data']) ? process_avatar_base64((string)$_POST['avatar_data'], $id) : process_avatar_upload($_FILES['avatar'] ?? [], $id); }
             catch (Throwable $t) { app_log('avatar: ' . get_class($t) . ': ' . $t->getMessage()); [$fileName, $err] = [null, 'Falha ao processar a imagem. Tente uma foto menor.']; }
             if ($err !== null) { flash('error', $err); redirect('index.php?page=profile'); }
             db()->prepare('UPDATE users SET avatar=? WHERE id=?')->execute([$fileName, $id]);
@@ -261,18 +278,20 @@ function profile_page(): void {
       var w=img.width,h=img.height,s=Math.min(w,h),c=document.createElement('canvas'); c.width=c.height=SIZE;
       var x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,SIZE,SIZE); x.imageSmoothingQuality='high';
       x.drawImage(img,(w-s)/2,(h-s)/2,s,s,0,0,SIZE,SIZE);
-      c.toBlob(function(b){
-        if(!b){ form.submit(); return; }
-        var fd=new FormData(form); fd.set('avatar',b,'avatar.jpg'); fd.delete('MAX_FILE_SIZE');
+      (function(){
+        var data=c.toDataURL('image/jpeg',0.88);
+        if(!data||data.indexOf('data:image/jpeg')!==0){ form.submit(); return; }
+        // Texto (base64) em formulário comum: firewalls de hospedagem costumam bloquear arquivo binário.
+        var fd=new URLSearchParams(); fd.set('_csrf',form.elements['_csrf'].value); fd.set('action','upload_avatar'); fd.set('avatar_data',data);
         fetch(form.getAttribute('action')||location.href,{method:'POST',body:fd,credentials:'same-origin',redirect:'manual'})
           .then(function(r){
             // Sucesso = o servidor respondeu com redirecionamento (resposta "opaqueredirect").
             if(r.type==='opaqueredirect'||(r.status>=300&&r.status<400)){ location.href='index.php?page=profile&_='+Date.now(); return; }
             document.body.classList.remove('avatar-busy'); input.value='';
-            fail('O servidor não aceitou a foto (código '+r.status+'). Tente novamente ou use uma imagem menor.');
+            fail('O servidor não aceitou a foto (código '+r.status+'). '+(r.status===403?'O firewall da hospedagem bloqueou o envio.':'Tente novamente ou use uma imagem menor.'));
           })
           .catch(function(){ document.body.classList.remove('avatar-busy'); input.value=''; fail('Falha de conexão ao enviar a foto. Tente novamente.'); });
-      },'image/jpeg',0.88);
+      })();
     }).catch(function(){ form.submit(); });
   });
 })();
